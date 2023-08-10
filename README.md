@@ -17,17 +17,28 @@ AWS Lambda raw script to transfer data from .csv file in S3 bucket to google spr
 
 
 
-#### AWS Lambda Function
+#### To test locally with docker
 
-6. [Create Lambda function](https://console.aws.amazon.com/lambda/home)
-
-7. Create Python3 layer with 'gspread' library and add it to Lambda
-
-8. Upload .py file to Lambda
-
-9. Set necessary variables to execute:
+6. Build your image from Dockerfile
 ```sh
-bucket_name = "name-of-your-s3-bucket"
-s3file_name = "name-of-csv-file-in-bucket"
-gsheet_name = "name-of-google-spreadsheet"
+docker build -t docker-image .
+```
+
+7. Set necessary variables in .env file:
+```sh
+BUCKET_NAME=
+FILE_NAME=
+SHEET_NAME=
+AWS_KEY_ID=
+AWS_ACCESS_KEY=
+```
+
+8. Run docker container with variables from .env file:
+```sh
+docker run -p 9000:8080 --env-file .env docker-image
+```
+
+9. Now to test invoke lambda from outside:
+```sh
+curl "http://localhost:9000/2015-03-31/functions/function/invocations" -d '{}'
 ```
