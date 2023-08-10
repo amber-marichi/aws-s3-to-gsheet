@@ -1,16 +1,19 @@
 import boto3
 import csv
 import gspread
-
-
-bucket_name = ""
-s3file_name = ""
-gsheet_name = ""
+import os
 
 
 def lambda_handler(event, context):
-    s3_client = boto3.client("s3")
-    s3_response = s3_client.get_object(Bucket=bucket_name, Key=s3file_name)
+    my_session = boto3.Session(
+        aws_access_key_id=os.environ.get("AWS_KEY_ID"),
+        aws_secret_access_key=os.environ.get("AWS_ACCESS_KEY"),
+    )
+    s3_client = my_session.client("s3")
+    s3_response = s3_client.get_object(
+        Bucket=os.environ.get("BUCKET_NAME"),
+        Key=os.environ.get("FILE_NAME")
+    )
     
     file_data = s3_response["Body"].read().decode("UTF-8").splitlines()
     csv_data = csv.reader(file_data)
@@ -20,7 +23,7 @@ def lambda_handler(event, context):
 
 def write_sheet(name_age_list):
     gc = gspread.service_account(filename="google_service_account_creds.json")
-    gsheet = gc.open(gsheet_name)
+    gsheet = gc.open(os.environ.get("SHEET_NAME"))
 
     for i, row in enumerate(name_age_list):
         if i == 0:
