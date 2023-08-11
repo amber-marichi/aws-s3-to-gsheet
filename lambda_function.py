@@ -1,7 +1,9 @@
 import boto3
 import csv
-import gspread
 import os
+
+from google.oauth2 import service_account
+from googleapiclient.discovery import build
 
 
 def lambda_handler(event, context):
@@ -25,11 +27,24 @@ def read_file_from_s3(session):
     return csv.reader(file_data)
 
 
-def write_sheet(name_age_list):
-    gc = gspread.service_account(filename="google_service_account_creds.json")
-    gsheet = gc.open(os.environ.get("SHEET_NAME"))
+def get_gsheet():
+    credentials = service_account.Credentials.from_service_account_file(
+        "google_service_account_creds.json",
+        scopes=["https://www.googleapis.com/auth/spreadsheets"]
+    )
+    return build("sheets", "v4", credentials=credentials)
 
-    for i, row in enumerate(name_age_list):
-        if i == 0:
-            continue
-        gsheet.sheet1.append_row(row, table_range="A2")
+
+def write_sheet(name_age_list):
+    gsheet = get_gsheet()
+    rows = {
+        'values' : list(name_age_list)[1:]
+    }
+
+    resp = gsheet.spreadsheets().values().append(
+        spreadsheetId=os.environ.get("SPREADSHEET_ID"),
+        range="A1",
+        valueInputOption="RAW",
+        body=rows).execute()
+
+    print(f"{resp['updates']['updatedRows']} new rows added.")
