@@ -1,0 +1,44 @@
+name: Deploy to ECR
+
+on:
+ 
+  push:
+    branches:
+      - dockerize
+
+jobs:
+  
+  build:
+    
+    name: Build Image
+    runs-on: ubuntu-latest
+
+   
+    steps:
+
+    - name: Checkout code
+      uses: actions/checkout@v3
+    
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        role-to-assume: ${{ secrets.ROLE_ARN }}
+        aws-region: eu-central-1
+
+    - name: Login to ECR
+      id: login-ecr
+      run: |
+        REPO_NAME="write-gsheet-from-s3"
+        ECR_LOGIN=$(aws ecr get-login --no-include-email --region eu-central-1)
+        $ECR_LOGIN
+
+    - name: Build and push Docker image to ECR
+      run: |
+        REPO_NAME="write-gsheet-from-s3"
+        IMAGE_URI="$REPO_NAME:latest"
+
+        docker build -t $REPO_NAME .
+
+        docker tag $REPO_NAME $IMAGE_URI
+
+        docker push $IMAGE_URI
