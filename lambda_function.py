@@ -33,7 +33,7 @@ def get_gsheet():
 def write_sheet(name_age_list):
     gsheet = get_gsheet()
     rows = {
-        'values' : list(name_age_list)[1:] + ["endstring", "value"]
+        'values' : list(name_age_list)[1:4]
     }
 
     resp = gsheet.spreadsheets().values().append(
