@@ -1,19 +1,18 @@
 name: Deploy to ECR
 
 on:
- 
+
   push:
     branches:
       - dockerize
 
 jobs:
-  
+
   build:
-    
+
     name: Build Image
     runs-on: ubuntu-latest
     env:
-        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
         ECR_REPOSITORY: write-gsheet-from-s3
         IMAGE_TAG: test-image
 
@@ -21,7 +20,7 @@ jobs:
 
     - name: Checkout code
       uses: actions/checkout@v3
-    
+
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
@@ -34,11 +33,15 @@ jobs:
       uses: aws-actions/amazon-ecr-login@v1
 
     - name: Build and push image
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
     - name: Update Lambda
+      env:
+        ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
       run: |
         aws lambda update-function-code \
         --function-name ${{ secrets.LAMBDA_NAME }} \
