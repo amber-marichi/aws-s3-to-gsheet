@@ -13,7 +13,7 @@ jobs:
     name: Build Image
     runs-on: ubuntu-latest
     env:
-        ECR_REPOSITORY: write-gsheet-from-s3
+        ECR_REPOSITORY: from-template-ecr
         IMAGE_TAG: test-image
 
     steps:
@@ -24,8 +24,8 @@ jobs:
     - name: Configure AWS credentials
       uses: aws-actions/configure-aws-credentials@v1
       with:
-        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_TEMP }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_TEMP }}
         aws-region: eu-central-1
 
     - name: Login to ECR
@@ -38,11 +38,14 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-
+ 
     - name: Update Lambda
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        LAMBDA: ${{ secrets.LAMBDA_ARN }}
+      if: ${{ env.LAMBDA != '' }}
       run: |
         aws lambda update-function-code \
-        --function-name ${{ secrets.LAMBDA_NAME }} \
+        --function-name $LAMBDA \
         --image-uri $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
+
