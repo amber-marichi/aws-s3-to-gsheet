@@ -13,7 +13,7 @@ jobs:
     name: Build Image
     runs-on: ubuntu-latest
     env:
-        ECR_REPOSITORY: from-template-ecr
+        ECR_REPOSITORY: my-repo-from-template
         IMAGE_TAG: test-image
 
     steps:
