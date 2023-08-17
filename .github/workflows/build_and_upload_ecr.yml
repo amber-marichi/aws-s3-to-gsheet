@@ -38,14 +38,22 @@ jobs:
       run: |
         docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
         docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
- 
+
+    - name: Check lambda ARN    
+      id: lambda-check
+      run: |
+        if [ "${{ secrets.LAMBDA_ARN }}" != '' ]; then
+          echo "arn_available=true" >> $GITHUB_OUTPUT;
+        else
+          echo "arn_available=false" >> $GITHUB_OUTPUT;
+        fi
+
     - name: Update Lambda
+      if: ${{ steps.lambda-check.outputs.arn_available == 'true' }}
       env:
         ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-        LAMBDA: ${{ secrets.LAMBDA_ARN }}
-      if: ${{ env.LAMBDA != '' }}
       run: |
         aws lambda update-function-code \
-        --function-name $LAMBDA \
+        --function-name ${{ secrets.LAMBDA_ARN }} \
         --image-uri $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
 
