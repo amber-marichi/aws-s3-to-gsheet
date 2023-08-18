@@ -23,11 +23,12 @@ def get_secret(secret_name):
 
 
 def lambda_handler(event, context):
+    print(event)
     username = event.get("username")
     if not username:
         return {
             'statusCode': 400,
-            'body': json.dumps("Invalid request")
+            'body': json.dumps("Invalid request: No username found")
         }
 
     result = search_user(username)
