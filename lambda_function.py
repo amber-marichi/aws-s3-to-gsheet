@@ -24,7 +24,7 @@ def get_secret(secret_name):
 
 def lambda_handler(event, context):
     print(event)
-    username = event.get("username")
+    username = event["body"].get("username")
     if not username:
         return {
             'statusCode': 400,
